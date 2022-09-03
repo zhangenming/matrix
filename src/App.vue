@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
+
 const SPEED = ref(1)
 const size = 10
 const _w = Math.floor(innerWidth / size)
@@ -12,54 +13,31 @@ window.onresize = function setSize() {
   X.value = _w * _h
 }
 
-const arr = ref(Array(X.value).fill(0))
-const str = ref(
-  Array(X.value)
-    .fill(0)
-    .map(() =>
-      String.fromCharCode(Math.floor(Math.random() * 26) + 'A'.charCodeAt(0))
-    )
-)
+const _arr = Array(X.value).fill(0)
+const arr = reactive(_arr)
+const str = Array(X.value)
+  .fill(0)
+  .map(() =>
+    String.fromCharCode(Math.floor(Math.random() * 26) + 'A'.charCodeAt(0))
+  )
 
 const tick = ref(1)
 function setTick(target: number) {
-  if (target >= X.value) {
-    target = target - X.value
-  }
+  arr[target] = tick.value++
 
-  const tmp = [...arr.value]
-  tmp[target] = tick.value
-  arr.value = [...tmp]
+  requestAnimationFrame(() => {
+    const tmp = target + _w - X.value
+    setTick(tmp > 0 ? tmp : target + _w)
+  })
 }
 
-let targets: number[] = []
-watch(arr, (l, r) => {
-  targets.push(
-    ...l
-      .map((e, i) => ({ e, i }))
-      .filter(({ e, i }) => r[i] !== e)
-      .map(({ i }) => i + _w)
-  )
-})
-
-let _t = 0
-function nextTick() {
-  if (!(_t++ % SPEED.value)) {
-    tick.value++
-    while (targets.length) {
-      const target = targets.pop()!
-      setTick(target)
-    }
-  }
-
-  requestAnimationFrame(nextTick)
-}
-requestAnimationFrame(nextTick)
+// requestAnimationFrame(function f() {
+//   requestAnimationFrame(f)
+// })
 
 setTick(334)
 
 function getStyle(val: number) {
-  return
   if (!val) return
   // if (tick.value - val > 10) return
 
@@ -88,13 +66,7 @@ function getStyle(val: number) {
       <button @click="SPEED++">sub</button>
     </div>
 
-    <div
-      v-for="(val, idx) in arr"
-      :style="getStyle(val)"
-      v-on:click="setTick(idx)"
-    >
-      <!-- {{ val ? val : '' }} -->
-      <!-- {{ String.fromCharCode(Math.floor(Math.random() * 26) + 'A'.charCodeAt(0))}} -->
+    <div v-for="(val, idx) in arr" @click="setTick(idx)">
       {{ str[idx] }}
     </div>
   </div>

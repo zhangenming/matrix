@@ -1,6 +1,10 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import test from './test.vue'
 
 import './assets/main.css'
 
-createApp(App).mount('#app')
+const app = createApp(test)
+app.config.performance = true
+
+app.mount('#app')
